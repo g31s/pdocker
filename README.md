@@ -38,7 +38,7 @@ pdocker
 
 ## Authors
 
-* **g13s** - *Initial work* - [g31s](https://github.com/g31s)
+* **g31s** - *Initial work* - [g31s](https://github.com/g31s)
 
 See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
 
