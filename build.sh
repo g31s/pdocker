@@ -8,11 +8,10 @@ sudo docker build \
     -t pdocker .
 
 # Add the alias to bashrc
-echo "# Pdocker alias" >> ~/.bashrc
+echo "# Pdocker alias" >> ~/.profile
 # Add  -v ~/hostpath/Projects:/Projects to share volume
-echo "alias pdocker=`pwd`/pdocker.sh" >> ~/.bashrc
-
-source ~/.bashrc
+echo "alias pdocker=`pwd`/pdocker.sh" >> ~/.profile
+source ~/.profile 
 
 echo "[*] Image Building Complete."
 echo "[*] Use pdocker to start the enviroment. Enjoy."
