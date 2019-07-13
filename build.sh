@@ -1,5 +1,5 @@
 # Building the Docker Image for Pdocker project.
-# Version 1.0.0
+# Version 1.1.0
 
 echo "[*] Start Building..."
 # Build the image
@@ -14,5 +14,5 @@ echo "alias pdocker=`pwd`/pdocker.sh" >> ~/.bashrc
 
 source ~/.bashrc
 
-echo "[*] Image builded."
+echo "[*] Image Building Complete."
 echo "[*] Use pdocker to start the enviroment. Enjoy."
