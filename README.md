@@ -1,4 +1,4 @@
-# Pdocker v1.0.0
+# Pdocker v1.1.0
 
 Pdocker is a simple terminal UI to maintain and manage personal projects in Docker.
 
@@ -23,7 +23,7 @@ Step 1: Clone the repo.
 ```
 git clone https://github.com/g31s/pdocker.git
 ```
-Step 2: Change permissions for build.sh && pdocker.sh
+Step 2: Go to project directory and change permissions for build.sh && pdocker.sh
 ```
 chmod +x build.sh
 ```
@@ -40,7 +40,7 @@ pdocker
 
 * **g31s** - *Initial work* - [g31s](https://github.com/g31s)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/g31s/pdocker/contributors) who participated in this project.
 
 ## License
 

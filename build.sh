@@ -1,5 +1,5 @@
 # Building the Docker Image for Pdocker project.
-# Version 1.0.0
+# Version 1.1.0
 
 echo "[*] Start Building..."
 # Build the image
@@ -8,11 +8,10 @@ sudo docker build \
     -t pdocker .
 
 # Add the alias to bashrc
-echo "# Pdocker alias" >> ~/.bashrc
+echo "# Pdocker alias" >> ~/.profile
 # Add  -v ~/hostpath/Projects:/Projects to share volume
-echo "alias pdocker=`pwd`/pdocker.sh" >> ~/.bashrc
+echo "alias pdocker=`pwd`/pdocker.sh" >> ~/.profile
+source ~/.profile 
 
-source ~/.bashrc
-
-echo "[*] Image builded."
+echo "[*] Image Building Complete."
 echo "[*] Use pdocker to start the enviroment. Enjoy."
