@@ -1,5 +1,5 @@
 # The Docker Image is part of Pdocker project. The image is the baseline. This image can/should be modified according to personal user.
-# Version 1.1.1
+# Version 2.0.0
 
 # Use an official debian runtime as a parent image
 FROM debian

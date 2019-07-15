@@ -1,4 +1,4 @@
-# Pdocker v1.1.1
+# Pdocker v2.0.0
 
 Pdocker is a simple terminal UI to maintain and manage personal projects in Docker.
 
@@ -34,6 +34,39 @@ Step 3: Run build.sh
 Step 4: Type pdocker in terminal
 ```
 pdocker
+```
+Note: if pdocker dosn't work. Start your terminal again or source bash_profile
+
+### Usage
+
+#### Creating new containers
+```
+pdocker n
+or
+pdocker new
+```
+#### Start existing Container
+```
+pdocker
+```
+And select container ID/Name
+### Delete Container
+```
+pdocker d
+or
+pdocker delete
+```
+### Delete All Container
+```
+pdocker da
+or
+pdocker delete_all
+```
+### Help
+```
+pdocker h
+or
+pdocker help
 ```
 
 ## Authors
