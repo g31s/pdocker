@@ -1,5 +1,5 @@
 # Building the Docker Image for Pdocker project.
-# Version 1.1.1
+# Version 2.0.0
 
 echo "[*] Start Building..."
 # Build the image

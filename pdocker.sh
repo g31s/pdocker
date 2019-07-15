@@ -1,33 +1,42 @@
 # The Bash script is to manage and maintain the pdocker enviroment with docker.
-# Version 1.1.1
+# Version 1.1.0
 
 # Gloabl Variables
-pdockercontainers=$(docker ps -a | grep pdocker | awk -F ' ' '{print ($NF ":" $1)}' | tr ',', '\n')
-count=$(echo $pdockercontainers | wc -w)
+pdockerContainers=$(docker ps -a | grep pdocker | awk -F ' ' '{print ($NF ":" $1)}' | tr ',', '\n')
+count=$(echo $pdockerContainers | wc -w)
+
+# user_input ask user for input
+user_input(){
+	echo "[*] Type the Container ID or Name:"
+	read -p ">>" input
+}
+
+# help display program usage
+help(){
+	echo 'Usage: pdocker options'
+	echo 'Options: [(n|new)|(d|delete)|(da|delete_all)|(h|help)]'
+}
+
+# check_container check for existing containers
+check_container(){
+	# Check if containers already exists
+	if [ $count -eq 0 ]; then
+		echo "[-] No pdocker containers found."
+		help
+		exit
+	fi
+}
 
 # start_container function start the older containers base on name or id. If no container exists it creates new one.
-manage_container(){
-	echo "[*] Select Following Option:"
-	echo "=> New Container: new"
-	echo "=> Delete Container: delete"
-	echo "=> Type the Container ID to start."
-	read -p ">>" option
+start_container(){
 
-	if [[ $option == "new" ]]; then
-		echo "[*] Staring new container..."
-		create_new_container
-	elif [[ $option == "delete" ]]; then
-		read -p "Container ID >>" container_id
-		docker stop $container_id
-		docker rm $container_id
-		echo "[*] Container Deleted."
-	elif [[ $option == "exit" ]]; then
-		exit;
-	else
-		echo "[*] Staring $option container..."
-		docker start $option
-		docker exec -it $option /bin/bash
-	fi
+	check_container
+	display_containers
+	user_input
+
+	echo "[*] Staring $input container..."
+	docker start $input
+	docker exec -it $input /bin/bash
 }
 
 # display_containers function display the list of existing containers in nice format.
@@ -37,7 +46,7 @@ display_containers(){
 	echo "    ID 		 Name"
 	echo "------------  --------"
 
-	for containerid in $pdockercontainers
+	for containerid in $pdockerContainers
 	do 	
 		echo $containerid |  awk -F ':' '{print ($NF "\t" $1)}'
 	done
@@ -45,11 +54,34 @@ display_containers(){
 	echo "======================="
 }
 
-# more_than_one function display nice error message if there are more than 1 existing containers
-more_than_one(){
-	echo "[!] Pdocker containers already exists."
-	display_containers
+# delete_containe_all delete all containers
+delete_container_all(){
+	check_container
+	read -p "[!] Sure you want to delete all containers?[N/y]:" permission
+	if [[ $permission == 'y' ]];
+	then
+		echo "[*] Deleteing All Container...."
+
+		for containerid in $pdockerContainers
+		do 	
+			container_id=$(echo $containerid |  awk -F ':' '{print ($1)}')
+			docker stop $container_id
+			docker rm $container_id
+		done
+
+	fi
 }
+
+# delete_container delete basd on user input
+delete_container(){
+	check_container
+	display_containers
+	user_input
+	echo "[*] Deleteing Container...."
+	docker stop $input
+	docker rm $input
+}
+
 
 # get_name funciton ask user for the name for the container.
 get_name(){ 
@@ -71,42 +103,37 @@ get_volume(){
 	echo "=> No volume: n"
 	echo "=> Type the path for volume"
 
-	read -p ">>" volumepath
+	read -p ">>" volume
 
+	if [[ $volume == "y" ]]; then
+		volume=$(pwd)
+	fi
 }
 
 # create_new_container creates new docker container
 create_new_container(){
 	get_name
 	get_volume
-
-	#move to here as pwd passed form string dosn't work.
-	if [[ $volumepath == "y" ]]; then
-		docker run --name $name --volume "$(pwd)":/home/$name -t -i pdocker /bin/bash
-	elif [[ $volumepath != "n" ]]; then
-		volume="--volume $volumepath:/home/$name"
-		docker run --name $name $volume -t -i pdocker /bin/bash
-	else
-		docker run --name $name -t -i pdocker /bin/bash
-	fi
-
+	docker run --name $name --volume "$volume:/home/$name" -t -i pdocker /bin/bash
 }
 
-# check_containers check if there is existing containers.
-check_containers(){
-	if [ $count -eq 0 ]; then
-		create_new_container
-	else
-		more_than_one
-		manage_container
-	fi
-}
 
-main(){
-	# Check if container already exists
-	check_containers
-	echo "[*] Bye."
-}
 
 # Everything starts here.
-main
+case $1 in
+	n|new)
+	  create_new_container
+	  ;;
+	d|delete)
+	  delete_container
+	;;
+	da|delete_all)
+	  delete_container_all
+	;;
+	h|help)
+	  help
+	;;
+	*)
+	  start_container
+	  ;;
+esac
