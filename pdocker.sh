@@ -1,5 +1,5 @@
 # The Bash script is to manage and maintain the pdocker enviroment with docker.
-# Version 1.1.0
+# Version 1.1.1
 
 # Gloabl Variables
 pdockercontainers=$(docker ps -a | grep pdocker | awk -F ' ' '{print ($NF ":" $1)}' | tr ',', '\n')
@@ -73,18 +73,20 @@ get_volume(){
 
 	read -p ">>" volumepath
 
-	if [[ $volumepath == "y" ]]; then
-		volume="--volume $(pwd):/home/$name"
-	elif [[ $volumepath != "n" ]]; then
-		volume="--volume $volumepath:/home/$name"
-	fi
 }
 
 # create_new_container creates new docker container
 create_new_container(){
 	get_name
 	get_volume
-	docker run --name $name $volume -t -i pdocker /bin/bash
+
+	#move to here as pwd passed form string dosn't work.
+	if [[ $volumepath == "y" ]]; then
+		docker run --name $name --volume "$(pwd)":/home/$name -t -i pdocker /bin/bash
+	elif [[ $volumepath != "n" ]]; then
+		volume="--volume $volumepath:/home/$name"
+		docker run --name $name $volume -t -i pdocker /bin/bash
+	fi
 }
 
 # check_containers check if there is existing containers.
