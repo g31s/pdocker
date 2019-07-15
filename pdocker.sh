@@ -86,7 +86,10 @@ create_new_container(){
 	elif [[ $volumepath != "n" ]]; then
 		volume="--volume $volumepath:/home/$name"
 		docker run --name $name $volume -t -i pdocker /bin/bash
+	else
+		docker run --name $name -t -i pdocker /bin/bash
 	fi
+
 }
 
 # check_containers check if there is existing containers.
