@@ -1,5 +1,5 @@
 # The Bash script is to manage and maintain the pdocker enviroment with docker.
-# Version 1.1.0
+# Version 2.0.1
 
 # Gloabl Variables
 pdockerContainers=$(docker ps -a | grep pdocker | awk -F ' ' '{print ($NF ":" $1)}' | tr ',', '\n')
@@ -9,6 +9,16 @@ count=$(echo $pdockerContainers | wc -w)
 user_input(){
 	echo "[*] Type the Container ID or Name:"
 	read -p ">>" input
+}
+
+# docker_running? check if docker is running 
+docker_running?(){
+	if [[ $(pgrep -f docker | wc -l) -eq 1 ]];
+	then
+		echo '[!] Unable to find docker.'
+		echo '[!] Verify if docker is installed and running.'
+		exit
+	fi
 }
 
 # help display program usage
@@ -29,7 +39,6 @@ check_container(){
 
 # start_container function start the older containers base on name or id. If no container exists it creates new one.
 start_container(){
-
 	check_container
 	display_containers
 	user_input
@@ -117,9 +126,10 @@ create_new_container(){
 	docker run --name $name --volume "$volume:/home/$name" -t -i pdocker /bin/bash
 }
 
+#Everything starts here..
+docker_running?
 
-
-# Everything starts here.
+# Check for command line arugments
 case $1 in
 	n|new)
 	  create_new_container
@@ -135,5 +145,7 @@ case $1 in
 	;;
 	*)
 	  start_container
-	  ;;
+	;;
 esac
+
+

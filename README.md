@@ -1,4 +1,4 @@
-# Pdocker v2.0.0
+# Pdocker v2.0.1
 
 Pdocker is a simple terminal UI to maintain and manage personal projects in Docker.
 
