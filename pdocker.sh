@@ -1,5 +1,5 @@
 # The Bash script is to manage and maintain the pdocker enviroment with docker.
-# Version 2.0.1
+# Version 2.1.0
 
 # Gloabl Variables
 pdockerContainers=$(docker ps -a | grep pdocker | awk -F ' ' '{print ($NF ":" $1)}' | tr ',', '\n')
