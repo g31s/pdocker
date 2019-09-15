@@ -50,6 +50,12 @@ pdocker new
 pdocker
 ```
 And select container ID/Name
+### Open Port for existing Container
+```
+pdocker op
+or
+pdocker open_port
+```
 ### Delete Container
 ```
 pdocker d
