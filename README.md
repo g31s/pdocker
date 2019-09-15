@@ -1,4 +1,4 @@
-# Pdocker v2.0.0
+# Pdocker v2.1.0
 
 Pdocker is a simple terminal UI to maintain and manage personal projects in Docker.
 
@@ -50,6 +50,12 @@ pdocker new
 pdocker
 ```
 And select container ID/Name
+### Open Port for existing Container
+```
+pdocker op
+or
+pdocker open_port
+```
 ### Delete Container
 ```
 pdocker d
