@@ -24,4 +24,7 @@ Run apt-get install net-tools
 # Install git
 Run apt-get install git
 
+# Install Build Essential
+Run apt-get install build-essential
+
 CMD ["bash"]

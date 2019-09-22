@@ -34,7 +34,7 @@ open_ports(){
 	do 	
 		if [[ "$containers" == *"$input"* ]]; then
 			containerid=$(echo $containers | awk -F ':' '{print ($2)}')
-			containername=$(echo $containers | awk -F ':' '{print ($1)}')
+			containername=$(echo $containers | awk -F ':' '{print ($1)}'  | tr '[:upper:]' '[:lower:]')
 
 			name=$containername"_pdocker_op"
 			commit_container $containerid $name
