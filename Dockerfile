@@ -19,12 +19,12 @@ Run apt-get install python -y
 Run apt-get install ruby -y
 
 # Install Net-tools
-Run apt-get install net-tools
+Run apt-get install net-tools -y
 
 # Install git
-Run apt-get install git
+Run apt-get install git -y
 
 # Install Build Essential
-Run apt-get install build-essential
+Run apt-get install build-essential -y
 
 CMD ["bash"]
