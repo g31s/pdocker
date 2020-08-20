@@ -58,7 +58,7 @@ user_input(){
 }
 
 # docker_running? check if docker is running 
-docker_running?(){
+docker_running(){
 	if [[ $(pgrep -f docker | wc -l) -eq 1 ]];
 	then
 		echo '[!] Unable to find docker.'
@@ -206,7 +206,7 @@ create_new_container(){
 }
 
 #Everything starts here..
-docker_running?
+docker_running
 
 # Check for command line arugments
 case $1 in

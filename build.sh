@@ -11,6 +11,7 @@ sudo docker build \
 echo "# Pdocker alias" >> ~/.bash_profile
 # Add  -v ~/hostpath/Projects:/Projects to share volume
 echo "alias pdocker=`pwd`/pdocker.sh" >> ~/.bash_profile
+echo "alias pdocker=`pwd`/pdocker.sh" >> ~/.zshrc
 source ~/.bash_profile 
 
 echo "[*] Image Building Complete."
