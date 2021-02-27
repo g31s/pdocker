@@ -27,4 +27,17 @@ Run apt-get install git -y
 # Install Build Essential
 Run apt-get install build-essential -y
 
+# Install curl
+Run apt-get install curl -y
+
+# Add new user & Setup homebrew
+RUN useradd -m -s /bin/bash linuxbrew && \
+    echo 'linuxbrew ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers
+
+USER linuxbrew
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
+
+USER root
+ENV PATH="/home/linuxbrew/.linuxbrew/bin:${PATH}"
+
 CMD ["bash"]
