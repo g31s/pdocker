@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: shellcheck
-        run: shellcheck pdocker.sh build.sh install.sh
+        run: shellcheck pdocker.sh build.sh install.sh bootstrap.sh
 
       - name: hadolint
         run: |

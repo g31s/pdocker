@@ -8,6 +8,15 @@
 
 set -euo pipefail
 
+# Piped into bash there is no BASH_SOURCE, and no repo to install from; that
+# is what bootstrap.sh is for.
+if [[ -z "${BASH_SOURCE[0]:-}" ]]; then
+	echo "[-] install.sh must be run from a pdocker checkout." >&2
+	echo "    To install from GitHub instead, use bootstrap.sh:" >&2
+	echo "      curl -fsSL https://raw.githubusercontent.com/g31s/pdocker/master/bootstrap.sh | bash" >&2
+	exit 1
+fi
+
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 SRC="$PWD/pdocker.sh"

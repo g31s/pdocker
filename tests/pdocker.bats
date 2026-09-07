@@ -211,3 +211,12 @@ teardown() {
 	run run_args "demo" "" "" "proj2"
 	[[ "$output" == *"proj2"* ]]
 }
+
+@test "update refuses when pdocker is not a git checkout" {
+	PDOCKER_ROOT="$TMP/not-a-repo"
+	mkdir -p "$PDOCKER_ROOT"
+	run cmd_update
+	[ "$status" -ne 0 ]
+	[[ "$output" == *"not a git checkout"* ]]
+	[[ "$output" == *"bootstrap.sh"* ]]
+}

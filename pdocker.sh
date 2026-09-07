@@ -767,6 +767,63 @@ cmd_tui() {
 	done
 }
 
+# cmd_update pulls a newer pdocker and says whether the image needs rebuilding.
+# Pulling the script is not enough on its own: a changed Dockerfile or template
+# does nothing until you rebuild, which is easy to forget.
+cmd_update() {
+	local before after changed check=0
+	[[ "${1:-}" == "--check" ]] && check=1
+
+	if [[ ! -d "${PDOCKER_ROOT}/.git" ]]; then
+		err "${PDOCKER_ROOT} is not a git checkout, so pdocker cannot update itself."
+		err "Reinstall or upgrade it the same way you installed it, e.g.:"
+		err "  curl -fsSL https://raw.githubusercontent.com/g31s/pdocker/master/bootstrap.sh | bash"
+		return 1
+	fi
+
+	git -C "$PDOCKER_ROOT" diff --quiet 2>/dev/null \
+		|| die "Local changes in ${PDOCKER_ROOT}. Commit or stash them first."
+
+	info "Fetching ..."
+	git -C "$PDOCKER_ROOT" fetch --quiet origin || die "Could not reach the remote."
+
+	before="$(git -C "$PDOCKER_ROOT" rev-parse HEAD)"
+	after="$(git -C "$PDOCKER_ROOT" rev-parse '@{upstream}' 2>/dev/null || printf '%s' "$before")"
+
+	if [[ "$before" == "$after" ]]; then
+		info "Already up to date ($(cmd_version))."
+		return 0
+	fi
+
+	if [[ "$check" -eq 1 ]]; then
+		info "An update is available:"
+		git -C "$PDOCKER_ROOT" log --oneline "${before}..${after}" | sed 's/^/    /'
+		info "Run 'pdocker update' to apply it."
+		return 0
+	fi
+
+	# --ff-only so a local commit is never silently merged away.
+	git -C "$PDOCKER_ROOT" merge --ff-only "$after" >/dev/null \
+		|| die "Cannot fast-forward; ${PDOCKER_ROOT} has diverged from the remote."
+	info "Updated to $(cmd_version)."
+
+	changed="$(git -C "$PDOCKER_ROOT" diff --name-only "$before" HEAD \
+		| grep -E '^(Dockerfile|dotfiles/|build\.sh)' || true)"
+	if [[ -n "$changed" ]]; then
+		warn "The base image changed. Rebuild it:"
+		warn "  ${PDOCKER_ROOT}/build.sh"
+	fi
+
+	changed="$(git -C "$PDOCKER_ROOT" diff --name-only "$before" HEAD \
+		| sed -n 's|^templates/\([^/]*\)/.*|\1|p' | sort -u || true)"
+	if [[ -n "$changed" ]]; then
+		warn "These templates changed; rebuild the ones you use:"
+		printf '%s\n' "$changed" | sed 's/^/      pdocker template build /' >&2
+	fi
+
+	info "Existing containers keep running. 'pdocker rebuild <name>' adopts a new image."
+}
+
 cmd_help() {
 	cat <<'USAGE'
 Usage: pdocker [--yes] <command> [name]
@@ -789,6 +846,7 @@ Commands:
   tpl, template [...]    list templates, or: template build <name>
   tui, ui                full-screen browser over your containers
   net [sub]              networks: show | set | attach | detach | create | rm
+  up, update [--check]   pull a newer pdocker (--check only reports)
   h,  help               show this help
   v,  version            show the pdocker version
 
@@ -844,6 +902,7 @@ main() {
 		tpl|template)   cmd_template "$@" ;;
 		net|network)    cmd_net "$@" ;;
 		tui|ui)         cmd_tui ;;
+		up|update)      cmd_update "${1:-}" ;;
 		"")             cmd_start "" ;;
 		*)              cmd_start "$sub" ;;
 	esac

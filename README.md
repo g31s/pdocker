@@ -9,9 +9,7 @@ Compose or Dev Containers, and `pdocker` is easy to walk away from.
 ## Quick start
 
 ```
-git clone https://github.com/g31s/pdocker.git
-cd pdocker
-./build.sh && ./install.sh
+curl -fsSL https://raw.githubusercontent.com/g31s/pdocker/master/bootstrap.sh | bash -s -- --build
 ```
 
 Then, from a project you already have:
@@ -67,20 +65,59 @@ Developed on macOS; the scripts avoid bashisms newer than 3.2 and work on Linux.
 ## Install
 
 ```
-./build.sh      # build the base image
-./install.sh    # symlink `pdocker` into ~/.local/bin
+curl -fsSL https://raw.githubusercontent.com/g31s/pdocker/master/bootstrap.sh | bash -s -- --build
 ```
 
-`install.sh` creates a symlink rather than appending an alias to your shell
-config, so re-running it is harmless and it works the same in bash and zsh. If
-it warns that the target directory is not on your `PATH`:
+That clones the repo to `~/.local/share/pdocker`, symlinks `pdocker` into
+`~/.local/bin`, and builds the base image. Drop `--build` to skip the image and
+run `build.sh` yourself later.
+
+pdocker is not a single script — it needs its `Dockerfile`, `dotfiles/` and
+`templates/` — so the installer places the whole repo somewhere stable and
+links into it. A symlink, rather than an alias appended to your shell config,
+means re-running is harmless and it behaves the same in bash and zsh.
+
+If it warns that `~/.local/bin` is not on your `PATH`:
 
 ```
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-Uninstall with `rm ~/.local/bin/pdocker`. Nothing else is written outside
-`~/.pdocker`.
+Already have a clone? Run `./install.sh` inside it instead.
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `PDOCKER_SRC` | `~/.local/share/pdocker` | where the repo is cloned |
+| `PDOCKER_BIN_DIR` | `~/.local/bin` | where the symlink goes |
+| `PDOCKER_REF` | `master` | branch or tag to install (`--ref v3.0.0`) |
+
+Uninstall with `rm ~/.local/bin/pdocker` and `rm -rf ~/.local/share/pdocker`.
+Nothing else is written outside `~/.pdocker`.
+
+## Updating
+
+```
+pdocker update --check    # is there anything new?
+pdocker update            # pull it
+```
+
+`update` fast-forwards the checkout, so a local edit is never silently
+discarded — it stops and tells you to commit or stash first.
+
+Pulling the script is not always enough: a changed `Dockerfile` or template
+does nothing until the image is rebuilt. `update` diffs what actually changed
+and tells you which of these to run:
+
+```
+~/.local/share/pdocker/build.sh    # base image changed
+pdocker template build go          # a template changed
+```
+
+Running containers are unaffected either way; `pdocker rebuild <name>` moves
+one onto the new image when you are ready.
+
+Re-running the `curl | bash` line does the same thing, so it works as a repair
+tool if the symlink ever breaks.
 
 ## Usage
 
@@ -103,6 +140,7 @@ pdocker [--yes] <command> [name] [options]
 | `adopt <name>` | `ad` | import a pre-3.0 container by writing a spec for it |
 | `template [list\|build]` | `tpl` | list templates, or build one |
 | `tui` | `ui` | full-screen browser over your containers |
+| `update [--check]` | `up` | pull a newer pdocker |
 | `net [sub]` | | manage networks (see below) |
 | `help` | `h` | show usage |
 | `version` | `v` | show the version |
@@ -302,7 +340,7 @@ now.
 
 ```
 bats tests/                                  # unit tests, no Docker needed
-shellcheck pdocker.sh build.sh install.sh
+shellcheck pdocker.sh build.sh install.sh bootstrap.sh
 hadolint Dockerfile templates/*/Dockerfile
 ```
 
