@@ -220,3 +220,18 @@ teardown() {
 	[[ "$output" == *"not a git checkout"* ]]
 	[[ "$output" == *"bootstrap.sh"* ]]
 }
+
+@test "update does not require a working Docker daemon" {
+	# A broken Docker must not block the command that fixes a broken Docker.
+	mkdir -p "$TMP/bin"
+	printf '#!/bin/sh\necho "cannot connect" >&2\nexit 1\n' > "$TMP/bin/docker"
+	chmod +x "$TMP/bin/docker"
+	PATH="$TMP/bin:$PATH"
+	PDOCKER_ROOT="$TMP/not-a-repo"
+	mkdir -p "$PDOCKER_ROOT"
+
+	run main update
+	# It should get past the daemon check and fail on the git check instead.
+	[[ "$output" == *"not a git checkout"* ]]
+	[[ "$output" != *"Docker daemon"* ]]
+}

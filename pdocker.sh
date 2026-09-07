@@ -909,6 +909,7 @@ main() {
 	case "${1:-}" in
 		h|help|-h|--help) cmd_help; return 0 ;;
 		v|version|--version) cmd_version; return 0 ;;
+		up|update) cmd_update "${2:-}"; return 0 ;;
 	esac
 
 	require_docker
@@ -930,7 +931,6 @@ main() {
 		tpl|template)   cmd_template "$@" ;;
 		net|network)    cmd_net "$@" ;;
 		tui|ui)         cmd_tui ;;
-		up|update)      cmd_update "${1:-}" ;;
 		"")             cmd_start "" ;;
 		*)              cmd_start "$sub" ;;
 	esac
