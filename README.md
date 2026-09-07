@@ -9,7 +9,7 @@ Compose or Dev Containers, and `pdocker` is easy to walk away from.
 ## Quick start
 
 ```
-curl -fsSL https://raw.githubusercontent.com/g31s/pdocker/master/bootstrap.sh | bash -s -- --build
+curl -fsSL https://raw.githubusercontent.com/g31s/pdocker/master/bootstrap.sh | bash
 ```
 
 Then, from a project you already have:
@@ -65,12 +65,17 @@ Developed on macOS; the scripts avoid bashisms newer than 3.2 and work on Linux.
 ## Install
 
 ```
-curl -fsSL https://raw.githubusercontent.com/g31s/pdocker/master/bootstrap.sh | bash -s -- --build
+curl -fsSL https://raw.githubusercontent.com/g31s/pdocker/master/bootstrap.sh | bash
 ```
 
 That clones the repo to `~/.local/share/pdocker`, symlinks `pdocker` into
-`~/.local/bin`, and builds the base image. Drop `--build` to skip the image and
-run `build.sh` yourself later.
+`~/.local/bin`, and builds the base image — pdocker cannot do anything without
+it, so building is part of installing.
+
+Re-running the same line updates an existing install in place. It skips the
+build when the image is already there (pass `--build` to force a rebuild, or
+`--no-build` to never build). If Docker is unreachable the install still
+succeeds; it just tells you to run `build.sh` once Docker works.
 
 pdocker is not a single script — it needs its `Dockerfile`, `dotfiles/` and
 `templates/` — so the installer places the whole repo somewhere stable and

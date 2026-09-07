@@ -18,14 +18,21 @@ REPO="${PDOCKER_REPO:-https://github.com/g31s/pdocker.git}"
 REF="${PDOCKER_REF:-master}"
 SRC_DIR="${PDOCKER_SRC:-${HOME}/.local/share/pdocker}"
 BIN_DIR="${PDOCKER_BIN_DIR:-${HOME}/.local/bin}"
-DO_BUILD=0
+IMAGE="${PDOCKER_IMAGE:-pdocker:latest}"
+FORCE_BUILD=0
+NO_BUILD=0
 
 while [[ "$#" -gt 0 ]]; do
 	case "$1" in
-		--build) DO_BUILD=1; shift ;;
-		--ref)   REF="${2:-master}"; shift 2 ;;
+		--build)    FORCE_BUILD=1; shift ;;
+		--no-build) NO_BUILD=1; shift ;;
+		--ref)      REF="${2:-master}"; shift 2 ;;
 		-h|--help)
-			echo "Usage: bootstrap.sh [--build] [--ref <branch|tag>]"
+			echo "Usage: bootstrap.sh [--build|--no-build] [--ref <branch|tag>]"
+			echo
+			echo "The base image is built automatically when it is missing."
+			echo "  --build     rebuild it even if it already exists"
+			echo "  --no-build  never build it"
 			exit 0 ;;
 		*) echo "[-] Unknown option: $1" >&2; exit 1 ;;
 	esac
@@ -77,10 +84,31 @@ case ":$PATH:" in
 		;;
 esac
 
-if [[ "$DO_BUILD" -eq 1 ]]; then
-	"$SRC_DIR/build.sh"
+# Build the base image as part of installing, because pdocker cannot do
+# anything without it. But skip it when the image is already there (this script
+# is also the update path), and never fail the install just because Docker is
+# unreachable - the install itself succeeded.
+build_hint() {
+	info "Build it later with:  $SRC_DIR/build.sh"
+}
+
+if [[ "$NO_BUILD" -eq 1 ]]; then
+	info "Skipping the image build (--no-build)."
+	build_hint
+elif ! command -v docker >/dev/null 2>&1; then
+	printf '[!] docker is not installed, so the base image was not built.\n' >&2
+	build_hint
+elif ! docker info >/dev/null 2>&1; then
+	printf '[!] Cannot reach the Docker daemon, so the base image was not built.\n' >&2
+	printf '[!] On Linux this is usually socket permissions:\n' >&2
+	# shellcheck disable=SC2016  # literal: this is a line for the user to copy.
+	printf '[!]       sudo usermod -aG docker "$USER" && newgrp docker\n' >&2
+	build_hint
+elif [[ "$FORCE_BUILD" -eq 0 ]] && docker image inspect "$IMAGE" >/dev/null 2>&1; then
+	info "Base image $IMAGE is already built (use --build to rebuild it)."
 else
-	info "Next: build the base image with"
-	info "  $SRC_DIR/build.sh"
-	info "Then: pdocker new myproject      (later: pdocker update)"
+	info "Building the base image ..."
+	"$SRC_DIR/build.sh"
 fi
+
+info "Ready. Try:  pdocker new myproject"
