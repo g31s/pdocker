@@ -47,6 +47,7 @@ if [[ -d "$SRC_DIR/.git" ]]; then
 	info "Updating existing install at $SRC_DIR ..."
 	git -C "$SRC_DIR" diff --quiet 2>/dev/null \
 		|| die "Local changes in $SRC_DIR. Commit or stash them, then re-run."
+	BEFORE="$(git -C "$SRC_DIR" rev-parse HEAD)"
 	git -C "$SRC_DIR" fetch --quiet origin
 	# --ff-only: never rewrite or merge over what is already there.
 	git -C "$SRC_DIR" checkout --quiet "$REF" 2>/dev/null || true
@@ -59,6 +60,17 @@ else
 	git clone --quiet "$REPO" "$SRC_DIR"
 	git -C "$SRC_DIR" checkout --quiet "$REF" 2>/dev/null \
 		|| die "No such branch or tag: $REF"
+fi
+
+# If the pull changed anything the image is built from, the existing image is
+# stale and "already built" would be the wrong answer.
+if [[ -n "${BEFORE:-}" ]]; then
+	AFTER="$(git -C "$SRC_DIR" rev-parse HEAD)"
+	if [[ "$BEFORE" != "$AFTER" ]] && git -C "$SRC_DIR" diff --name-only "$BEFORE" "$AFTER" \
+		| grep -qE '^(Dockerfile|dotfiles/|build\.sh)'; then
+		info "The base image inputs changed in this update; rebuilding."
+		FORCE_BUILD=1
+	fi
 fi
 
 chmod +x "$SRC_DIR/pdocker.sh" "$SRC_DIR/build.sh" "$SRC_DIR/install.sh" 2>/dev/null || true
