@@ -1,18 +1,29 @@
-# Building the Docker Image for Pdocker project.
-# Version 2.1.0
+#!/usr/bin/env bash
+#
+# Build the pdocker base image. Installing the `pdocker` command is a separate
+# step: see ./install.sh.
 
-echo "[*] Start Building..."
-# Build the image
-sudo docker build \
-    --rm \
-    -t pdocker .
+set -euo pipefail
 
-# Add the alias to bashrc
-echo "# Pdocker alias" >> ~/.bash_profile
-# Add  -v ~/hostpath/Projects:/Projects to share volume
-echo "alias pdocker=`pwd`/pdocker.sh" >> ~/.bash_profile
-echo "alias pdocker=`pwd`/pdocker.sh" >> ~/.zshrc
-source ~/.bash_profile 
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
-echo "[*] Image Building Complete."
-echo "[*] Use pdocker to start the enviroment. Enjoy."
+IMAGE="${PDOCKER_IMAGE:-pdocker:latest}"
+
+command -v docker >/dev/null 2>&1 || { echo "[-] docker not found in PATH." >&2; exit 1; }
+docker info >/dev/null 2>&1 || { echo "[-] Cannot reach the Docker daemon. Is Docker running?" >&2; exit 1; }
+
+echo "[*] Building $IMAGE ..."
+
+# UID/GID are baked in so files written to the mounted volume are owned by you.
+# No sudo: Docker Desktop does not need it, and running as root would build
+# into root's Docker context instead of yours.
+docker build \
+	--rm \
+	--build-arg "UID=$(id -u)" \
+	--build-arg "GID=$(id -g)" \
+	-t "$IMAGE" \
+	"$@" \
+	.
+
+echo "[*] Built $IMAGE."
+echo "[*] Next: ./install.sh, then run 'pdocker new'."

@@ -1,0 +1,9 @@
+# hadolint configuration for pdocker.
+ignored:
+  # DL3064: "sensitive data in ARG/ENV" fires on our `ARG USERNAME=dev`, which
+  # is a username, not a secret. False positive.
+  - DL3064
+  # DL3008: pin apt versions. This is a rolling development base image whose
+  # whole purpose is current tooling; pinning every apt package would mean it
+  # silently rots, which is the failure mode this project already lived through.
+  - DL3008

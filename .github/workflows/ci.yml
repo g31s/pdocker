@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  # The weekly run is the point of this workflow: it catches base-image drift
+  # (an upstream package disappearing, a broken installer URL) before a user
+  # hits it, which is exactly how the `python` package removal went unnoticed.
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: shellcheck + hadolint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shellcheck
+        run: shellcheck pdocker.sh build.sh install.sh
+
+      - name: hadolint
+        run: |
+          docker run --rm -v "$PWD:/mnt" -w /mnt hadolint/hadolint:latest \
+            hadolint --failure-threshold warning Dockerfile templates/*/Dockerfile
+
+  test:
+    name: bats
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install bats
+        run: sudo apt-get update && sudo apt-get install -y bats
+
+      - name: Run unit tests
+        run: bats tests/
+
+  build:
+    name: docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the base image
+        run: ./build.sh
+
+      - name: Smoke-test the image
+        run: |
+          docker run --rm pdocker:latest bash -lc '
+            set -e
+            whoami
+            [ "$(id -u)" != "0" ] || { echo "expected a non-root user"; exit 1; }
+            git --version
+            cc --version | head -1
+            command -v brew && { echo "brew should be opt-in"; exit 1; } || true
+          '
+
+      - name: Build a template image and check the toolchain
+        run: |
+          ./pdocker.sh template list
+          for t in go node python rust; do
+            ./pdocker.sh template build "$t"
+          done
+          docker run --rm pdocker:go   bash -lc 'set -e; go version; [ "$GOMODCACHE" = "/workspace/.cache/go/pkg/mod" ]'
+          docker run --rm pdocker:node bash -lc 'set -e; node --version; npm --version'
+          docker run --rm pdocker:python bash -lc 'set -e; python3 --version'
+          docker run --rm pdocker:rust bash -lc 'set -e; rustc --version; cargo --version'
+          '

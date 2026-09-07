@@ -1,0 +1,31 @@
+# pdocker container shell defaults.
+
+# Environment first, before the interactive guard. Debian's /etc/profile resets
+# PATH for login shells, which wipes the image's ENV PATH, so a login shell has
+# to put Homebrew back on PATH itself - interactive or not.
+if [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
+	eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+
+# Templates add toolchain bin directories via PDOCKER_PATH rather than PATH,
+# for the same reason: PATH would not survive /etc/profile.
+if [ -n "${PDOCKER_PATH:-}" ]; then
+	PATH="${PDOCKER_PATH}:${PATH}"
+	export PATH
+fi
+
+# Everything below is interactive-only.
+[ -z "$PS1" ] && return
+
+# Keep shell history in the mounted volume so it survives a container rebuild.
+if [ -w /workspace ]; then
+	export HISTFILE=/workspace/.pdocker_bash_history
+fi
+export HISTSIZE=10000
+export HISTFILESIZE=20000
+export HISTCONTROL=ignoreboth
+shopt -s histappend checkwinsize
+
+alias ll='ls -alF'
+alias la='ls -A'
+export PS1='\[\033[01;32m\]\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
