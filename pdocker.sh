@@ -43,7 +43,35 @@ die()  { err "$*"; exit 1; }
 # require_docker fails early if the daemon is not reachable.
 require_docker() {
 	command -v docker >/dev/null 2>&1 || die "docker not found in PATH."
-	docker info >/dev/null 2>&1 || die "Cannot reach the Docker daemon. Is Docker running?"
+
+	local out
+	out="$(docker info 2>&1 >/dev/null)" && return 0
+
+	# Show what Docker actually said. "Is Docker running?" is the wrong answer
+	# most of the time on Linux, where the daemon is up but the socket is not
+	# readable by this user.
+	err "Cannot talk to the Docker daemon. Docker said:"
+	printf '%s\n' "$out" | sed 's/^/      /' >&2
+
+	case "$out" in
+		*"permission denied"*)
+			err ""
+			err "Your user cannot read the Docker socket. On Linux, add yourself"
+			err "to the docker group (then open a new shell, or run newgrp):"
+			err "      sudo usermod -aG docker \"\$USER\""
+			err "      newgrp docker"
+			err "Verify with:  docker info"
+			;;
+		*"Cannot connect to the Docker daemon"*|*"no such file or directory"*|\
+		*"No such file or directory"*|*"failed to connect to the docker API"*)
+			err ""
+			err "The daemon does not appear to be listening. On Linux:"
+			err "      sudo systemctl start docker"
+			err "If you use rootless Docker, make sure DOCKER_HOST is set:"
+			err "      export DOCKER_HOST=unix://\${XDG_RUNTIME_DIR}/docker.sock"
+			;;
+	esac
+	exit 1
 }
 
 # require_image fails if the base image has not been built yet.
